@@ -1,0 +1,117 @@
+1 - Qual a diferença entre middleware, guard e interceptor no NestJS?
+
+    - O middleware é chamado uma vez para cada requisição, ele recebe a requisição do cliente,
+    pela continuidade do código faz essa requesição chegar até o controler, e quando ele terminar de
+    executar ele realiza um callBack, e pode gerar algum tipo de relatório de saída daquela requisição.
+    - O Guard é responsavel pela autorização da requisição feita pelo cliente, ele simplesmente retorna
+    se o cliente pode ou não seguir com a requisição que ele quis executar baseado no token ou na falta dele,
+    e no tipo de requisição que está sendo feita.
+    - O interceptor acompanha os estados antes e depois da execução da requisição pelo controller, pode ser
+    usado para formatar tanto as entradas quanto as saídas da API, também para contar o tempo de execução,
+    embora esse trabalho também possa ser feito pelo middleware.
+
+
+2 - Em que momento você usaria um guard em vez de validar o token dentro do controller?
+    
+    Acredito que em todo momento, pois o guard tem a única função de justamente autorizar a requisição
+    através do token recebido. Fazendo esse trabalho pelo guard além do prjeto em si ficar mais organizado,
+    Também mantem de forma centralizada todas as validações do projeto, facilitando na manutenção e no
+    entendimento pelos leitores do código. Se fizermos essa validação no controller, entre outros problemas
+    perderiamos o motivo de um projeto nest ser organizado da forma que é, praticamente inutilizando
+    toda a estrutura.
+
+
+3 - Como você trataria autenticação em um projeto real?
+
+    Provavelmente usaria de algum banco de dados online para armazenar as autenticações, e de forma a
+    melhorar a segurança usaria também criptografia, usando hash ou algum outro método. fazendo com que
+    caso um novo cadastro fosse feito, seria submetido a uma chave de criptografia para codifica-lo e então,
+    adicionado ao BD, quando ouvesse uma primeira validação (um login) o BD receberia um token de acesso e
+    compararia com os existentes no banco, caso existisse esse token o BD simplismente retornaria ele para
+    o usuário usar nas próximas validações contrario. Dessa forma a validação continua segura.
+
+
+4 - O que é idempotência? Quais métodos HTTP deste projeto são idempotentes?
+
+    Nesse contexto idempotência é quando após a primeira execução de uma função/método, após outras
+    execuções desse mesmo método o estado do programa não vai mudar, ou seja, não vai alterár nenhuma
+    variável interna ou do banco de dados do programa. Nesse programa estão contidos os seguintes métodos
+    http que são idempotêntes:
+
+    GET - Pois simplesmente recebe informações do programa, sem alterar nada contido nele.
+    PUT - Pois após alterar pela primeira vez um dos casos colocando novas informações, sempre que ele
+        For executado novamente com as mesmas informações simplismente vai manter o programa inalterado.
+    DELETE - Pois assim como o PUT, após ser executado a primeira vez possivelmente alterando o programa
+        E o deixando com um caso a menos, apóx isso não terá mais como remove-lo, mantendo os estado
+        inalterado para as próximas execuções.
+
+    O único método do projeto que não é idempotente é o POST, pois independente de quantas vezes seguidas
+    seja executado, sempre vai adicionar mais um caso, mudando sempre o estado do programa.
+
+
+5 - Qual status code você retornaria em cada caso?
+
+    Token inválido - 401 Unauthorized (O token enviado não tem autorização)
+    Recurso não encontrado - 404 Not Found (O caminho fornecido não foi encontrado para ser executado pelo servidor)
+    Corpo da requisição inválido - 400 Bad Request (Ouve algum erro na requesição do comando)
+
+
+6 - Como você substituiria o armazenamento em memória por um banco de dados?
+
+    Dependeria do escopo do projeto, se fosse algo mais reduzido e as informações só fossem acessadas
+    através de um servidor rodando em uma maquina específica, um exemplo seria utilizar um banco de dados
+    local, mas para o caso de um projeto maior, onde o banco de dados precisa estar constantemente ativo
+    e ser acessado por diversas maquinas diferentes, o ideal é usar um serviço de banco de dados em nuvem,
+    para ambos os casos mangoDB é um ótimo exemplo. E dentro desse contexto do nestJS esses bancos de dados
+    poderiam ser manipulados de forma mais fácil usando ferramentas como o prisma, que permite manipular
+    o banco de dados sem estar ativamente escrevendo em SQL.
+
+
+7 - Como você testaria esse projeto em unidade e em ponta a ponta?
+
+    Primeiramente, para o teste unitário, o ideal seria separar as funções individualmente para que se
+    possa testar cada uma delas de forma isolada, assim ocorrem varios testes isolados que vão retornar
+    valores individuais, garantido uma melhor visualização do comportamento de cada parte do código.
+
+    Agora, para o teste de ponta a ponta, o ideal seria fazer diretamente as requisições http, e fazer
+    todos os testes possiveis com cada uma delas, para garantir que todos os caminhos do código estejam
+    funcionando. Inclusive testar cenarios onde erros devem acontecer para averiguar se eles realmente
+    acontecem e se é o código de erro certo que está sendo retornado.
+
+
+8 - Que problema pode acontecer se duas pessoas atualizarem o mesmo recurso ao mesmo tempo?
+
+    Caso duas pessoas tentem alterar os valores de um caso do sistema ao mesmo tempo, pode acontecer
+    de um dos casos se perderem. Os dois vão ler o caso para alterar supostamente ao mesmo tempo, mas
+    na hora de enviar de volta ao armazenamento dos dados, um dos requerimetos de atualização vai se
+    completar antes do outro, portanto o que for recebido primeiro se perderá, já que foi sobre escrito
+    pelo segundo, que tem seu caso como atualização direta do caso original, e não carrega nenhuma
+    informação da primeira alteração, já que no momento em que se foi lido, a primeira alteração ainda
+    não tinha sido escrita.
+
+
+9 - Como você melhoraria a validação dos dados de entrada?
+
+    O primeiro passo seria estabelecer os padrões esperados para cada dado de entrada em cada situação
+    feito isso, armazenar essas regras de alguma forma dentro do código, seja por variáveis ou constantes,
+    e então criar um ou mais métodos que vão receber cada dado de entrada em comparar com os padrões que
+    esse dado deveria seguir, caso ocorresse alguma entrada de dado inesperada, já alertar o tipo de erro
+    adequando (provavelmente 400 Bad Request), e não mais continuar com a requisição. Já para o caso de
+    o requerimento vir com informações a mais, simplismente não colocaria elas do armazenamento de dados
+    e enviaria um aviso para o usuário de que certas informações que ele enviou não foram aceitas.
+
+
+10 - Qual foi a parte mais importante da solução que você escolheu e por quê?
+
+    Acho difícil de escolher porque todas as partes do código alteradas possuem lógicas simples e são
+    necessarias para o programa funcionar com exatidão, mas diria que a parte que mais pensei sobre
+    qual implementação escolher foi na implementação das funções http, mais especificamente na função
+    update, pois na hora de passar os arquivos recebidos para o armazenamento em momória principal,
+    fiquei na dúvida entre aplicar cada dado isoladamente, usando if's somente para verificar a existência
+    dos dados, ou se usada Spread Operaator, que foi o que acabei decidindo no fim. Fiquei na dúvida pois
+    em questão de performance a primeira estratégia era melhor, porém, deixava o código mais rígido, e caso
+    o sistema recebece mais informações, essa parte do código ficaria desfuncional, e mesmo sabendo que por
+    ser um projeto teste ele não cresceria, achei que a melhora de performance é muito insignificante e que
+    num projeto real o ideal seria implementar da forma como fiz.
+
+

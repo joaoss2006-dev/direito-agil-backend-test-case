@@ -50,19 +50,32 @@ export class CasesService {
   }
 
   update(id: string, _updateCaseDto: UpdateCaseDto): CaseRecord {
-    // TODO (Task 3): implement update logic for title/description/status.
-    // Required:
-    // - Return 404 when case does not exist.
-    // - Update only received fields.
-    // - Update "updatedAt" timestamp.
-    throw new NotImplementedException('Case update is not implemented yet');
+
+    const currentCase = this.cases.get(id);
+    if(!currentCase){
+      throw new NotFoundException("The id valor was not found!")
+    }
+
+    const updatedCase = {
+      ...currentCase,
+      ..._updateCaseDto
+    };
+
+    updatedCase.updatedAt = new Date().toISOString();
+
+    this.cases.set(id, updatedCase);
+
+    return updatedCase;
+    
   }
 
   remove(_id: string): void {
-    // TODO (Task 3): implement delete logic.
-    // Required:
-    // - Return 404 when case does not exist.
-    // - Remove the case from in-memory storage.
-    throw new NotImplementedException('Case delete is not implemented yet');
+    const caseDel = this.cases.get(_id);
+    if(!caseDel){
+      throw new NotFoundException("The id valor was not found!")
+    }
+
+    this.cases.delete(_id);
+    
   }
 }

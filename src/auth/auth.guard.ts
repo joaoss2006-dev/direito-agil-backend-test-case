@@ -23,10 +23,12 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException('Authentication is not configured');
     }
 
-    // TODO (Task 2):
-    // 1) Validate "Bearer <token>" format.
-    // 2) Compare <token> with expectedToken variable.
-    // 3) Allow request only when token is valid.
-    throw new UnauthorizedException('Token validation not implemented yet');
+    const [type, token] = authorizationHeader.split(' ');
+
+    if (type !== 'Bearer' || !token) throw new UnauthorizedException('Invalid authorization format. Use Bearer <token>',);
+
+    if (token !== expectedToken) throw new UnauthorizedException('The token is invalid');
+
+    return true;
   }
 }
